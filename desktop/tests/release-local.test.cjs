@@ -189,7 +189,7 @@ async function machine({ artifactDigest = data => sha256(data), tagOnRemote = fa
   const n = local.names(next), calls = [], said = [], github = { releases: [], patched: false, uploadDigest: digest => digest, ref: { object: { type: 'commit', sha: commit } }, tags: {}, notReadableYet: 0 };
   const contents = { [n.dmg]: Buffer.from('synthetic installer, never executed'), [n.zip]: Buffer.from('synthetic update archive, never executed') };
   const system = {
-    desktop, platform: 'darwin', arch: 'arm64', node: '22.23.3', now: () => new Date('2026-11-12T08:15:30.000Z'), pause: 0, say: line => { said.push(line); },
+    desktop, platform: 'darwin', arch: 'arm64', node: '22.23.3', version: next, now: () => new Date('2026-11-12T08:15:30.000Z'), pause: 0, say: line => { said.push(line); },
     git: (...args) => { calls.push(['git', ...args].join(' '));
       if (args[0] === 'rev-parse') return commit;
       if (args[0] === 'ls-remote') return tagOnRemote ? `${commit}\trefs/tags/${n.tag}` : '';

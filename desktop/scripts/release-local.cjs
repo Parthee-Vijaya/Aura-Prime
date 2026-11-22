@@ -136,7 +136,7 @@ function run({ command, args, env = {}, capture = false }) {
 }
 // Everything build and publish read from or start on the machine. The tests replace it.
 const system = {
-  desktop, platform: process.platform, arch: process.arch, node: process.versions.node, now: () => new Date(), run, pause: 2000,
+  desktop, platform: process.platform, arch: process.arch, node: process.versions.node, version: require('../package.json').version, now: () => new Date(), run, pause: 2000,
   say: text => { process.stdout.write(text + '\n'); },
   git: (...args) => execFileSync('git', args, { cwd: repositoryRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim(),
   gitSucceeds: (...args) => spawnSync('git', args, { cwd: repositoryRoot, stdio: 'ignore' }).status === 0,
@@ -150,7 +150,7 @@ function refuse(found) {
 // Git state that can be read without the network. The remote is only asked when the
 // machine and the checkout can build at all.
 function localFacts(sys) {
-  const version = require('../package.json').version, beta = betaPattern.test(version || '');
+  const version = sys.version, beta = betaPattern.test(version || '');
   return { platform: sys.platform, arch: sys.arch, node: sys.node, version,
     dirty: sys.git('status', '--porcelain') !== '',
     tagExists: beta && sys.gitSucceeds('rev-parse', '--verify', '--quiet', `refs/tags/v${version}`),

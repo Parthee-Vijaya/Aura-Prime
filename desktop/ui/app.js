@@ -1088,7 +1088,7 @@ $('#connection-back').onclick = () => { clearConnectionReceipt(); connectionView
 // definitions. Grupperne følger definitionens group-felt; ældre definitioner
 // uden felt får en fast plads, så kataloget aldrig mister en udbyder.
 const CATALOG_GROUPS = [['eu', 'EU og Danmark'], ['popular', 'Populære udbydere'], ['local', 'På din computer eller server']];
-const LOCAL_KINDS = ['ollama', 'compatible', 'lmstudio', 'vllm'];
+const LOCAL_KINDS = ['ollama', 'compatible', 'lmstudio', 'vllm', 'builtin'];
 function catalogGroup(kind, definition) {
   if (CATALOG_GROUPS.some(([id]) => id === definition?.group)) return definition.group;
   if (['corti', 'alexandra', 'mistral'].includes(kind)) return 'eu';
@@ -1325,7 +1325,7 @@ function updateProvider() {
   $('#cloudflare-fields').hidden = kindNow !== 'cloudflare';
   $('#cloudflare-account').required = kindNow === 'cloudflare';
   if (kindNow === 'cloudflare') { const match = /\/accounts\/([a-f0-9]{32})\//.exec($('#base-url').value || ''); $('#cloudflare-account').value = match ? match[1] : ''; syncCloudflareAddress(); }
-  const portHelp = { lmstudio: 'LM Studio bruger normalt port 1234. Start serveren under Developer i LM Studio, og ret adressen under Avanceret, hvis du har valgt en anden port.', vllm: 'vLLM bruger normalt port 8000 (vllm serve). Ret adressen under Avanceret, hvis serveren kører et andet sted.', ollama: 'Ollama bruger normalt port 11434 på denne computer.' }[kindNow];
+  const portHelp = { lmstudio: 'LM Studio bruger normalt port 1234. Start serveren under Developer i LM Studio, og ret adressen under Avanceret, hvis du har valgt en anden port.', vllm: 'vLLM bruger normalt port 8000 (vllm serve). Ret adressen under Avanceret, hvis serveren kører et andet sted.', ollama: 'Ollama bruger normalt port 11434 på denne computer.', builtin: 'Auras motor styres under Indstillinger › Lokale modeller. Vælg Brug ved en hentet model for at starte den; adressen er fast.' }[kindNow];
   $('#local-port-help').hidden = !portHelp; $('#local-port-help').textContent = portHelp || '';
   $('#base-url').placeholder = $('#provider-kind').value === 'compatible' ? 'https://gateway.example/v1' : '';
   if (!$('#connection-id').value) { const used = new Set((state?.connections || []).map(c => c.name)); let name = definition.name, number = 2; while (used.has(name)) name = `${definition.name} ${number++}`; $('#connection-name').value = name; }
@@ -2177,6 +2177,8 @@ function renderContextHud(selected = statusSelection(), model = modelCatalog?.fi
 }
 function applyPluginValues(values) { contextHudOn = values?.contextHud === true; renderContextHud(); }
 window.addEventListener('aura:plugins', event => applyPluginValues(event.detail?.values));
+// Lokale modeller gemmer selv en forbindelse (Ollama eller Auras motor); listen her følger med.
+window.addEventListener('aura:connections', event => { if (Array.isArray(event.detail?.state?.connections)) { state = event.detail.state; renderConnections(); } });
 if (typeof window.harness?.pluginsGet === 'function') void window.harness.pluginsGet().then(result => { if (result?.ok) applyPluginValues(result.value.values); }).catch(() => {});
 function openStatusHelp() {
   const line = $('#context-status');
@@ -3473,13 +3475,14 @@ $('#support-save').onclick = () => action(async () => { $('#support-status').tex
 $('#support-feedback').onclick = () => action(() => call('supportFeedback'));
 
 // Settings has one entry point. settings.js owns the dialog and the section
-// route; this block wires the six popover entries and registers the four
+// route; this block wires the seven popover entries and registers the four
 // established dialogs' own open functions, so no dialog ever nests in another.
 function openSettings(section) { return window.SettingsDialog?.open(section); }
 window.SettingsDialog?.register({ connections: openConnectionsSection, features: openFeaturesSection, support: openSupportSection });
 $('#settings-profile-button').onclick = () => openSettings('profile');
 $('#settings-appearance-button').onclick = () => openSettings('appearance');
 $('#connections-button').onclick = () => openSettings('connections');
+$('#local-models-button').onclick = () => openSettings('localmodels');
 $('#features-button').onclick = () => openSettings('features');
 $('#plugins-button').onclick = () => openSettings('plugins');
 $('#support-button').onclick = () => openSettings('support');

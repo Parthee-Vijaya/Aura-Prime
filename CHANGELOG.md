@@ -1,5 +1,17 @@
 # Ændringslog
 
+## 0.9.0-beta.1 · 22. november 2026
+
+Lokale modeller. Intet hentes eller startes, før du vælger det, og datagennemgang, godkendelser og beskyttede filer er uændrede.
+
+- **Indstillinger › Lokale modeller** viser computerens hukommelse og et lille katalog af åbne modeller, vurderet efter om de kan være i hukommelsen: Passer, Stramt, Kun til samtale eller For stor. Aura holder 4 GB fri til systemet og bruger på Apple Silicon højst to tredjedele af resten.
+- **Auras indbyggede motor** henter en fastlåst udgave af llama.cpp (b12633) og modelfilen, kontrollerer begge mod fastlåste SHA-256-kontrolsummer og kører modellen på `127.0.0.1`, port 11617, uden netværksadgang. Afbrudte hentninger kan fortsættes. Findes til macOS på Apple Silicon og Linux på x64.
+- **Ollama** kan bruges i stedet: Aura beder en installeret Ollama hente den samme katalogmodel og viser fremdriften.
+- **Afprøv værktøjskald** sender tre faste, opdigtede opgaver til modellen på computeren og gemmer resultatet med dato. En bestået afprøvning viser, at modellen kan kalde værktøjer, ikke at den kan bygge en app.
+- Ny forbindelsestype «Aura lokal motor». Modelkataloget for en llama.cpp-server læser nu den kørende kontekst, så svar ikke kan vokse ud over den.
+- Hentning af motor og model står på listen over ekstern kommunikation og er spærret i projekter med dataregler. Arbejdsformen «Kun lokal» kræver fortsat, at organisationen har dokumenteret modtageren; Aura registrerer ikke selv sin motor som lokal.
+- Katalogets otte modeller er ikke afprøvet enkeltvis til at bygge. Se [docs/lokale-modeller.md](docs/lokale-modeller.md).
+
 ## 0.8.0-beta.1 · 12. november 2026
 
 Fire tilføjelser efter gennemgangen af referenceappen. Ingen af dem sender noget til en AI af sig selv, og datagennemgang, godkendelser og beskyttede filer er uændrede.
