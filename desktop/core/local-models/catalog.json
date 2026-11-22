@@ -1,0 +1,183 @@
+{
+  "version": 1,
+  "checkedAt": "2026-11-22",
+  "models": [
+    {
+      "id": "ministral-3-3b",
+      "name": "Ministral 3 3B",
+      "publisher": "Mistral AI",
+      "origin": "Frankrig",
+      "parameters": "3 mia.",
+      "note": "Lille og hurtig. Bedst til samtale og korte opgaver.",
+      "gguf": {
+        "repo": "mistralai/Ministral-3-3B-Instruct-2512-GGUF",
+        "file": "Ministral-3-3B-Instruct-2512-Q4_K_M.gguf",
+        "revision": "eb599d408350ea2bb60452cb86be7c7b2fc28227",
+        "bytes": 2147023008,
+        "sha256": "9ed150d4367e68df0ac8e1540f6ddc65b42d0ee26378329d1ecbca60f93fc5f8",
+        "trainedContext": 262144,
+        "kvBytesPerToken": 106496
+      },
+      "ollama": {
+        "tag": "ministral-3:3b"
+      },
+      "license": "apache-2.0",
+      "toolsInTemplate": true
+    },
+    {
+      "id": "qwen3-4b",
+      "name": "Qwen3 4B",
+      "publisher": "Alibaba (Qwen)",
+      "origin": "Kina",
+      "parameters": "4 mia.",
+      "note": "Lille model med værktøjskald. Tænker, før den svarer.",
+      "gguf": {
+        "repo": "Qwen/Qwen3-4B-GGUF",
+        "file": "Qwen3-4B-Q4_K_M.gguf",
+        "revision": "bc640142c66e1fdd12af0bd68f40445458f3869b",
+        "bytes": 2497280256,
+        "sha256": "7485fe6f11af29433bc51cab58009521f205840f5b4ae3a32fa7f92e8534fdf5",
+        "trainedContext": 40960,
+        "kvBytesPerToken": 147456
+      },
+      "ollama": {
+        "tag": "qwen3:4b"
+      },
+      "license": "apache-2.0",
+      "toolsInTemplate": true
+    },
+    {
+      "id": "ministral-3-8b",
+      "name": "Ministral 3 8B",
+      "publisher": "Mistral AI",
+      "origin": "Frankrig",
+      "parameters": "8 mia.",
+      "note": "Mellemstor europæisk model til almindelige maskiner.",
+      "gguf": {
+        "repo": "mistralai/Ministral-3-8B-Instruct-2512-GGUF",
+        "file": "Ministral-3-8B-Instruct-2512-Q4_K_M.gguf",
+        "revision": "0102285ad796bd99af90f58de616092e5630e970",
+        "bytes": 5198911904,
+        "sha256": "33e7a72cf5e6e2cfc2f2847075acc013d68bba023e35310cef86b5cf8fdca761",
+        "trainedContext": 262144,
+        "kvBytesPerToken": 139264
+      },
+      "ollama": {
+        "tag": "ministral-3:8b"
+      },
+      "license": "apache-2.0",
+      "toolsInTemplate": true
+    },
+    {
+      "id": "qwen3-8b",
+      "name": "Qwen3 8B",
+      "publisher": "Alibaba (Qwen)",
+      "origin": "Kina",
+      "parameters": "8 mia.",
+      "note": "Mellemstor model med værktøjskald. Tænker, før den svarer.",
+      "gguf": {
+        "repo": "Qwen/Qwen3-8B-GGUF",
+        "file": "Qwen3-8B-Q4_K_M.gguf",
+        "revision": "7c41481f57cb95916b40956ab2f0b139b296d974",
+        "bytes": 5027783488,
+        "sha256": "d98cdcbd03e17ce47681435b5150e34c1417f50b5c0019dd560e4882c5745785",
+        "trainedContext": 40960,
+        "kvBytesPerToken": 147456
+      },
+      "ollama": {
+        "tag": "qwen3:8b"
+      },
+      "license": "apache-2.0",
+      "toolsInTemplate": true
+    },
+    {
+      "id": "ministral-3-14b",
+      "name": "Ministral 3 14B",
+      "publisher": "Mistral AI",
+      "origin": "Frankrig",
+      "parameters": "14 mia.",
+      "note": "Den største Ministral. Kræver en maskine med god hukommelse.",
+      "gguf": {
+        "repo": "mistralai/Ministral-3-14B-Instruct-2512-GGUF",
+        "file": "Ministral-3-14B-Instruct-2512-Q4_K_M.gguf",
+        "revision": "74fac473c43357d7fb2671713608183cc72496d0",
+        "bytes": 8239593024,
+        "sha256": "824e0f3373e69b84f2cae46fdcb9bd1ebc6ab3bfc7acc125d818b7b8178cc613",
+        "trainedContext": 262144,
+        "kvBytesPerToken": 163840
+      },
+      "ollama": {
+        "tag": "ministral-3:14b"
+      },
+      "license": "apache-2.0",
+      "toolsInTemplate": true
+    },
+    {
+      "id": "gpt-oss-20b",
+      "name": "gpt-oss 20B",
+      "publisher": "OpenAI",
+      "origin": "USA",
+      "parameters": "20 mia.",
+      "note": "OpenAI's åbne model. Tænker, før den svarer.",
+      "gguf": {
+        "repo": "ggml-org/gpt-oss-20b-GGUF",
+        "file": "gpt-oss-20b-MXFP4.gguf",
+        "revision": "41e8a94d15d62070b36cf4553a0250717ecf46b8",
+        "bytes": 12109566624,
+        "sha256": "27cd6c432c7672cb812a92f611cf3ba7bbc35928262bb1e1253ff4ee6ae35901",
+        "trainedContext": 131072,
+        "kvBytesPerToken": 49152
+      },
+      "ollama": {
+        "tag": "gpt-oss:20b"
+      },
+      "license": "apache-2.0",
+      "toolsInTemplate": true
+    },
+    {
+      "id": "devstral-small",
+      "name": "Devstral Small 1.1",
+      "publisher": "Mistral AI",
+      "origin": "Frankrig",
+      "parameters": "24 mia.",
+      "note": "Europæisk model bygget til kodeagenter.",
+      "gguf": {
+        "repo": "mistralai/Devstral-Small-2507_gguf",
+        "file": "Devstral-Small-2507-Q4_K_M.gguf",
+        "revision": "ee2f0c00c5c86862f471fbf533268cf01b80d4a6",
+        "bytes": 14333915904,
+        "sha256": "1bcc2b1b7b7ea3168ba2dbe782432c464f2240598bd193930122c41b117c1796",
+        "trainedContext": 131072,
+        "kvBytesPerToken": 163840
+      },
+      "ollama": {
+        "tag": "devstral-small-2:24b",
+        "note": "Ollama henter den nyere Devstral Small 2."
+      },
+      "license": "apache-2.0",
+      "toolsInTemplate": true
+    },
+    {
+      "id": "qwen3.8-27b",
+      "name": "Qwen3.8 27B",
+      "publisher": "Alibaba (Qwen)",
+      "origin": "Kina",
+      "parameters": "27 mia.",
+      "note": "Stor model til maskiner med meget hukommelse.",
+      "gguf": {
+        "repo": "ggml-org/Qwen3.8-27B-GGUF",
+        "file": "Qwen3.8-27B-Q4_K_M.gguf",
+        "revision": "c1869413dece09109e55b7dcc2c77ef382b0d0bd",
+        "bytes": 19403684480,
+        "sha256": "d15d4b6de55f662ac40e867702d31afe738d032fa06b829b2b1a21a49d4a48ee",
+        "trainedContext": 262144,
+        "kvBytesPerToken": 262144
+      },
+      "ollama": {
+        "tag": "qwen3.8:27b"
+      },
+      "license": "apache-2.0",
+      "toolsInTemplate": true
+    }
+  ]
+}

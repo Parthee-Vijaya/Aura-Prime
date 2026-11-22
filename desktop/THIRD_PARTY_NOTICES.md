@@ -18,6 +18,19 @@ Aura-tokens (ui/aura-tokens.css) bygger på DeepSeek Harness'
 github.com/deepseek-ai/deepseek-harness) — værdier, ikke kode; ingen CSS- eller
 TSX-filer er kopieret 1:1.
 
+## Lokale modeller — hentes efter brugerens valg, følger ikke med pakken
+
+- llama.cpp b12633 (MIT, github.com/ggml-org/llama.cpp): hentes som udgiverens
+  færdige arkiv, kontrolleres mod SHA-256 i core/local-models/engine-lock.json og
+  køres uændret. Ingen kildekode derfra er kopieret ind i Aura.
+- Modelfilerne i core/local-models/catalog.json (alle Apache-2.0) hentes fra
+  udgiverens eller ggml-orgs lager på Hugging Face. Kataloget indeholder kun
+  metadata: lager, udgave, filnavn, størrelse og kontrolsum.
+- Idéen om at anbefale modeller efter maskinens hukommelse er inspireret af
+  Unsloth Studio (github.com/unslothai/unsloth). Unsloths relevante kode er
+  AGPL-3.0-only og er hverken kopieret eller omskrevet; pasformsreglen,
+  kataloget og motorstyringen er skrevet til Aura fra bunden.
+
 ## Historik
 
 - 2.11.2026: Et samlet 27-ikon-sæt (D0) blev bygget og vist til preview, men

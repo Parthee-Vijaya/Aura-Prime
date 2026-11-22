@@ -103,7 +103,13 @@ Object.assign(definitions, {
     region: 'Cloudflare beskriver Workers AI som drift på sit globale netværk. Denne API-adresse giver ingen garanti om EU-behandling.', regionShort: 'Globalt netværk; EU ikke garanteret',
     retention: 'Ved almindelige inferenskald gemmes input og svar ifølge Cloudflare ikke længere end nødvendigt for at levere svaret. Stateful funktioner, egne logs og lovkrav kan medføre opbevaring. Driftsmetadata kan gemmes.', retentionShort: 'Ingen indholdsopbevaring efter almindelige kald; undtagelser' }),
   lmstudio: catalogEntry({ name: 'LM Studio', baseURL: 'http://127.0.0.1:1234/v1', group: 'local', keyRequired: false, keyURL: 'https://lmstudio.ai/docs/developer/core/authentication', source: 'https://lmstudio.ai/app-privacy', endpointSource: 'https://lmstudio.ai/docs/developer/openai-compat', termsVerified: false }),
-  vllm: catalogEntry({ name: 'vLLM', baseURL: 'http://127.0.0.1:8000/v1', group: 'local', keyRequired: false, keyURL: 'https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html', source: 'https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html', endpointSource: 'https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html', termsVerified: false })
+  vllm: catalogEntry({ name: 'vLLM', baseURL: 'http://127.0.0.1:8000/v1', group: 'local', keyRequired: false, keyURL: 'https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html', source: 'https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html', endpointSource: 'https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html', termsVerified: false }),
+  // Auras indbyggede motor (llama.cpp), som appen selv henter, starter og stopper. Adressen er fast, så en organisation kan
+  // dokumentere modtageren. Den styres under Lokale modeller og kan ikke rettes her.
+  builtin: catalogEntry({ name: 'Aura lokal motor', baseURL: 'http://127.0.0.1:11617/v1', group: 'local', keyRequired: false, keyURL: '', source: 'https://github.com/Parthee-Vijaya/Aura-Prime/blob/main/docs/lokale-modeller.md', endpointSource: 'https://github.com/ggml-org/llama.cpp/tree/master/tools/server', checkedAt: '2026-11-22',
+    training: 'Modellen kører på denne computer i Auras indbyggede motor. Indholdet sendes ikke til en udbyder og bruges ikke til træning.', trainingShort: 'Kører på denne computer',
+    region: 'Denne computer. Motoren lytter kun på 127.0.0.1 og startes uden netværksadgang.', regionShort: 'Denne computer',
+    retention: 'Motoren gemmer ikke samtaler. Indholdet ligger i computerens hukommelse, mens modellen kører.', retentionShort: 'Gemmes ikke af motoren' })
 });
 for (const kind of ['azure', 'ollama', 'compatible', 'cloudflare', 'lmstudio', 'vllm']) definitions[kind].editableBaseURL = true;
 // Provenance only: these dates inherit the existing review, never a new audit.
@@ -299,7 +305,7 @@ async function listModels(connection, key, { assertCurrent } = {}) {
   return models.slice(0, 5000).filter(model => model && model.capabilities?.completion_chat !== false && !(connection.kind === 'corti' && /embedding/.test(model.id)) && (connection.kind !== 'cloudflare' || !model.task?.name || model.task.name === 'Text Generation') && (connection.kind !== 'openai' || /^(gpt-|chatgpt-|codex-|o\d)/.test(model.id) && !/audio|realtime|transcribe|image|tts|search|deep-research/.test(model.id))).map(model => ({
     id: ollama || connection.kind === 'cloudflare' ? model.name : model.id, name: model.display_name || model.name || model.id,
     price: model.pricing || null, ...modelCapabilities(connection, { ...model, id: ollama ? model.name : model.id }),
-    limits: { context: tokenCount(model.context_length ?? model.max_context_length ?? model.context_window ?? model.max_input_tokens), output: tokenCount(model.top_provider?.max_completion_tokens ?? model.max_output_tokens ?? model.max_tokens) },
+    limits: { context: tokenCount(model.context_length ?? model.max_context_length ?? model.context_window ?? model.max_input_tokens ?? model.meta?.n_ctx), output: tokenCount(model.top_provider?.max_completion_tokens ?? model.max_output_tokens ?? model.max_tokens) },
     local: ollama && !model.remote_host && !/:.*cloud/.test(model.name) ? 'Ikke verificeret' : null
   })).filter(model => typeof model.id === 'string');
 }
@@ -448,8 +454,8 @@ function modelLimits(connection, model) {
   const k = known(connection, model);
   const context = model.limits?.context || k?.context || 32768;
   // Ukendte modeller får et forsigtigt loft. En tænkende model har brug for plads til både tanker og svar, og en lokal
-  // Ollama-model kan bruge op til halvdelen af sin kontekst.
-  const fallback = connection.kind === 'ollama' ? Math.floor(context / 2) : reasons(connection, model) ? 32000 : 4096;
+  // model i Ollama eller Auras motor kan bruge op til halvdelen af sin kontekst.
+  const fallback = ['ollama', 'builtin'].includes(connection.kind) ? Math.floor(context / 2) : reasons(connection, model) ? 32000 : 4096;
   // Et svar må aldrig kunne fylde hele konteksten.
   const output = Math.min(model.limits?.output || k?.output || fallback, OUTPUT_CEILING, Math.floor(context / 2));
   // OpenCode komprimerer ved limit.input minus en reserve; uden den ved konteksten minus svarloftet.

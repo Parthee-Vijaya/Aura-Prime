@@ -128,6 +128,8 @@ function shutdown() {
     const failures = [];
     try { await registry?.close(); } catch (error) { failures.push(error); }
     try { await closeSpaces(); } catch (error) { failures.push(error); }
+    // Den indbyggede motor holder en model i hukommelsen; den stoppes sammen med appen.
+    try { await localModels?.engine.stop(); } catch (error) { failures.push(error); }
     if (failures.length) throw failures[0];
   })().finally(() => { shuttingDown = null; });
   return shuttingDown;
@@ -778,6 +780,36 @@ handle('connections:diagnose', value => workbench.diagnoseConnection(value, requ
 handle('connections:diagnose-live', value => workbench.diagnoseConnectionLive(value));
 handle('connections:routes', value => workbench.routes(value.connectionID, value.modelID, requests.getStore()?.chat));
 handle('connections:effort-levels', value => workbench.effortLevels(value?.connectionID, value?.modelID, value?.capabilities));
+// Lokale modeller: maskintjek, katalog, hentning og den indbyggede motor. Én fælles tjeneste for hele appen.
+// Hentning (pull, download) står i privatlivsgrænsens liste over ekstern kommunikation og afvises i beskyttede projekter.
+let localModels;
+function localModelService() {
+  if (!localModels) {
+    const { LocalModels } = require('./core/local-models/service.cjs'), { LocalEngine } = require('./core/local-models/engine.cjs');
+    const directory = path.join(app.getPath('userData'), 'harness', 'local-models');
+    // Kun fra kildekoden: en prøveopsætning kan angive en opdigtet maskine og en efterlignet Ollama (scripts/verify-local-models.cjs).
+    const fixture = !app.isPackaged && process.env.HARNESS_LOCAL_MODELS_FIXTURE ? JSON.parse(require('node:fs').readFileSync(process.env.HARNESS_LOCAL_MODELS_FIXTURE, 'utf8')) : null;
+    const extra = {};
+    if (fixture) {
+      const { describeHardware } = require('./core/local-models/hardware.cjs'), ollama = require('./core/local-models/ollama.cjs');
+      extra.hardware = async () => describeHardware(fixture.hardware);
+      extra.ollama = { status: () => ollama.ollamaStatus({ baseURL: fixture.ollamaURL }), pull: options => ollama.pull({ ...options, baseURL: fixture.ollamaURL }) };
+    }
+    localModels = new LocalModels({ directory, engine: new LocalEngine({ directory }), emit: event => sendEvent(event), ...extra });
+  }
+  return localModels;
+}
+const localModelID = value => { if (typeof value?.id !== 'string' || !/^[a-z0-9][a-z0-9.-]{1,40}$/.test(value.id)) throw new Error('Vælg en model fra kataloget.'); return value.id; };
+// I et projekt med dataregler søges der ikke efter Ollama: en lokal server er først en modtager, når den er gemt og godkendt.
+const ollamaAllowed = async () => !await new (require('./core/privacy/external-egress.cjs').ExternalEgress)(() => workbench.privacy).active(workspaceRoot());
+handle('local-models:overview', async () => localModelService().overview({ ollama: await ollamaAllowed() }));
+handle('local-models:pull', value => localModelService().pull(localModelID(value)));
+handle('local-models:download', value => localModelService().download(localModelID(value)));
+handle('local-models:cancel', () => { localModelService().cancel(); return true; });
+handle('local-models:start', value => localModelService().start(localModelID(value)));
+handle('local-models:stop', async () => { await localModelService().stop(); return true; });
+handle('local-models:remove', async value => { await localModelService().remove(localModelID(value)); return true; });
+handle('local-models:probe', async value => localModelService().probe(localModelID(value), value?.source, { ollama: await ollamaAllowed() }));
 handle('model-log:list', value => workbench.modelLogList(value?.offset, value?.limit, requests.getStore()?.chat));
 require('./core/chat-materials-ipc.cjs').installChatMaterials({ getWorkbench:currentWorkbench, isSelected:bench => registry.selected === bench, register:handle, dialog, exclusive, normalizeImage:require('./core/screenshot-normalizer.cjs').createImageNormalizer({ nativeImage }), emit:event => sendEvent(event) });
 // S4 · GradientDeck — kataloget til /stil-popuppen og samtykkedialogen. Værten

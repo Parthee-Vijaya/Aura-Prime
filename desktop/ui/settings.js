@@ -31,6 +31,10 @@
       description: 'Se, ret og fjern dine gemte forbindelser, og tilføj en ny, når du får ny adgang.'
     },
     {
+      id: 'localmodels', label: 'Lokale modeller',
+      description: 'Se, hvilke AI-modeller der kan køre på din egen computer, hent dem, og afprøv dem. Intet hentes, før du vælger det.'
+    },
+    {
       id: 'features', label: 'Funktioner',
       description: 'Vælg, hvad Aura Prime skal hjælpe med i dine projekter, fx versioner, planlægning og design.'
     },
@@ -47,7 +51,7 @@
       description: 'Find hjælp, gem en fejlrapport uden projektindhold, og send feedback til den, der inviterede dig.'
     }
   ].map(Object.freeze));
-  const INLINE_SECTIONS = ['profile', 'appearance', 'plugins'];
+  const INLINE_SECTIONS = ['profile', 'appearance', 'plugins', 'localmodels'];
   const HEADING_ID = 'settings-section-title';
   // The theme hint key (aura.theme-hint.v1) has one writer: workspace-calm.js.
   // This module only calls calmWorkspace.setTheme, so the hint copy, the body
@@ -826,6 +830,8 @@
       if (section === 'profile') renderProfileFields();
       if (section === 'appearance') renderAppearanceFields();
       if (section === 'plugins') { renderPluginsFields(); void loadPlugins(); }
+      // Lokale modeller tegner sig selv (ui/local-models.js) med samme rammer og hjælpere som de øvrige afsnit.
+      if (section === 'localmodels') void window.AuraLocalModels?.open({ content, invoke, note, announce, feedbackArea, isCurrent: () => current === 'localmodels' && dialog.open });
       content.scrollTop = 0;
       // The cached profile renders instantly; the fetch refreshes it.
       if (profile) fill(profile);

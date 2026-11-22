@@ -17,6 +17,7 @@ Det fulde redesign giver en roligere arbejdsapp med et nyt opstartsforløb. Aura
 - **Et integreret logo.** Aura-identiteten indgår i velkomst, sidebar og den centrerede samtalestart.
 - **En sidebar, der kan skjules helt.** Åbn den igen fra arbejdsområdets top. Projekter, samtaler, søgning og indstillinger er samlet til venstre.
 - **Flere AI-udbydere og plugins.** Under AI-forbindelser ligger de kendte udbydere som kort, og nye som Google Gemini, Groq, xAI og LM Studio i en dropdown. Under Plugins styrer du webhentning og kontekstvisning. Plugins, der endnu ikke kan dækkes sikkert, står med en begrundelse.
+- **Lokale modeller (fra 0.9.0 beta 1).** Under Indstillinger kan du se, hvilke åbne AI-modeller der kan køre på din egen computer, hente dem med kontrolsum og afprøve deres værktøjskald. Modellen kører i Auras indbyggede motor eller i Ollama. [Sådan virker det](docs/lokale-modeller.md).
 - **Samlede indstillinger.** Lokal profil, generelle valg, AI-forbindelser, funktioner, opdateringer og hjælp har samme navigation. Vælg lyst, mørkt eller systemets tema, og justér tekststørrelsen.
 - **Ét materialesystem.** Seks radiustrin, hårstreger på 0,5 px, bløde elevationer uden kant og fokusringe, der følger tastaturet. Accenten er Auras egen grønne. Se [designkontrakten](desktop/DESIGN.md).
 - **Adgang til arbejdsdetaljer.** Samtalen og arbejdssporet supplerer forhåndsvisning, plan, ændringer, kode og aktivitet. Det midlertidigt lukkede panel i en ny samtale overskriver ikke dit gemte layoutvalg.

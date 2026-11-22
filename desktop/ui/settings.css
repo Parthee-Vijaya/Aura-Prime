@@ -318,3 +318,28 @@ body.native-welcome-window #welcome-dialog::backdrop { background: var(--aura-bg
 .local-discovery-more[hidden] { display: none; }
 .provider-catalog .catalog-terms[data-stale="true"] { color: var(--aura-warning-ink); }
 #connection-add-flow > .catalog-terms { margin: -4px 0 14px; }
+
+/* Lokale modeller — samme rækker og typografi som Plugins. Status står som
+   almindelig tekst med en prik, ikke som mærkat. */
+.local-note { margin: 0 0 6px; font-size: 13px; line-height: 1.5; color: var(--aura-ink-secondary); }
+.local-model { display: grid; gap: 6px; padding: 14px 0; border-top: var(--aura-hairline) solid var(--aura-border); }
+.local-model:first-of-type { border-top: 0; }
+.local-model-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
+.local-model-head strong { font-size: 14px; font-weight: 600; color: var(--aura-ink); }
+.local-fit, .local-status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--aura-ink-secondary); }
+.local-fit::before, .local-status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--aura-ink-faint); }
+.local-fit[data-fit="fits"]::before, .local-status::before { background: var(--aura-success); }
+.local-fit[data-fit="tight"]::before, .local-fit[data-fit="chat-only"]::before { background: var(--aura-accent); opacity: .55; }
+.local-best { font-size: 12px; font-weight: 600; color: var(--aura-accent-ink); }
+.local-model[data-fit="too-big"] strong, .local-model[data-fit="too-big"] .local-note { color: var(--aura-ink-muted); }
+.local-facts, .local-probe, .local-actions small { font-size: 12px; line-height: 1.45; color: var(--aura-ink-muted); }
+.local-facts .text-button { min-height: 0; padding: 0; font-size: 12px; }
+.local-probe[data-passed="true"] { color: var(--aura-success-ink); }
+.local-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 2px; }
+.local-alternative { font-size: 12px; color: var(--aura-ink-secondary); }
+.local-alternative summary { cursor: pointer; width: fit-content; }
+.local-alternative .local-actions { margin-top: 8px; }
+.local-progress { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 6px 12px; width: 100%; }
+.local-progress-label { grid-column: 1 / -1; font-size: 12px; color: var(--aura-ink-secondary); }
+.local-progress-bar { height: 6px; border-radius: 4px; background: var(--aura-border-strong); overflow: hidden; }
+.local-progress-fill { height: 100%; width: 0; border-radius: 4px; background: var(--aura-accent); }

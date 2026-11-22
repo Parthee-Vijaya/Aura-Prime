@@ -20,7 +20,7 @@
   const LETTERMARKS = Object.freeze({
     google: ['G', '#4285f4'], groq: ['Gq', '#f55036'], together: ['T', '#0f6fff'], fireworks: ['F', '#6720ff'],
     cerebras: ['C', '#f05a28'], xai: ['x', '#111111'], perplexity: ['P', '#20808d'], huggingface: ['HF', '#ff9d00'],
-    nvidia: ['N', '#76b900'], moonshot: ['K', '#1f1f1f'], cloudflare: ['CF', '#f38020'], lmstudio: ['LM', '#4b5bdc'], vllm: ['vL', '#30a2ff']
+    nvidia: ['N', '#76b900'], moonshot: ['K', '#1f1f1f'], cloudflare: ['CF', '#f38020'], lmstudio: ['LM', '#4b5bdc'], vllm: ['vL', '#30a2ff'], builtin: ['A', '#0b7f62']
   });
   function lettermark(kind, ownerDocument) {
     if (!Object.hasOwn(LETTERMARKS, kind) || !ownerDocument?.createElement) return null;
