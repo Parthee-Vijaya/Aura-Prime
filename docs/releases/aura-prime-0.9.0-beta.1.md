@@ -39,3 +39,24 @@ Opdateringsfeedet har samme form som i 0.8.0 beta 1: én post med opdaterings-ZI
 - Ikke afprøvet: en fysisk Mac med en katalogmodel, hentning af en fil på flere GB over en rigtig forbindelse, hentning bag en proxy, Ollama med en rigtig model og hver katalogmodels evne til at bygge.
 
 Udgivelsen bygges, afprøves og uploades af workflowet **Byg og udgiv Mac-beta** på en macOS-maskine i GitHub Actions med `desktop/scripts/release-local.cjs`. Den samlede kontrol af kildekoden indgår ikke i den bygning; workflowet Kildetjek kører skrivebordstestene på macOS for hver commit på `main`. Den pakkede app er afprøvet automatisk, men ingen har set den efter før offentliggørelsen. Kildecommit, accepttrin og kontrolsummer står under Bygning og kontrol.
+
+## Udgivet 22. november 2026
+
+Bygget fra `ffec355c69a9dad367d3f007b9bc07debc5fe846` af workflowet Byg og udgiv Mac-beta på en `macos-15`-maskine med Node 22.23.3 og offentliggjort kl. 19.13 dansk tid. Tagget `v0.9.0-beta.1` peger på samme commit på `main`.
+
+- Den samlede kontrol af kildekoden indgik ikke i bygningen. Kildetjek (skrivebordstestene på macOS) var grønt for samme commit, før bygningen blev startet.
+- Accepttesten af den pakkede app: 22 trin, inklusive opgradering fra 0.8.0-beta.1 i samme profil.
+- DMG og ZIP er kontrolleret mod den afprøvede app, ad hoc-signeret.
+
+Efter udgivelsen er de fire filer hentet fra GitHub i et særskilt Linux-miljø og kontrolleret: alle matcher `SHA256SUMS.txt`, feedets SHA-512 og størrelse matcher ZIP-filen, feedet har én post og accepteres af opdateringskontrollen i beta 7 og 0.8.0 beta 1, og feedets offentlige adresse svarer uden login. De ti filer for lokale modeller i pakken er identiske med kildecommitten. Resultatet står i [verification.json](aura-prime-0.9.0-beta.1-evidence/verification.json).
+
+Ingen har åbnet den pakkede app og set den efter, og lokale modeller er ikke afprøvet i den pakkede app: hverken hentning af motoren, start af en model eller afprøvning af værktøjskald. Accepttesten åbner ikke Lokale modeller.
+
+Workflowet Byg testpakker startede ikke ved tagget, fordi tagget blev oprettet med workflowets eget token.
+
+## Kontrolsummer
+
+- `Aura-Prime-0.9.0-beta.1-mac-arm64.dmg`: SHA-256 `7838c9a41491e411e0d48b5ecf9f205d060ed8fe928da61cf1cb87af3ab6df7b`
+- `Aura-Prime-0.9.0-beta.1-mac-arm64.zip`: SHA-256 `e3f11eb8d00461b04201a81358f5490f6417ca426d5b13e09eca581e89ca6df9`
+- `beta-mac.yml`: SHA-256 `f3e0bedafd1f949a9df24344659b9b96231110f51df247ac94feeb94e66c91ad`
+- `SHA256SUMS.txt`: SHA-256 `89b08ad29e1c2acde479620916143351a7f0e37dc70643e179017ac10c8bea2e`
