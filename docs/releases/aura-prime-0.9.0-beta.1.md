@@ -38,4 +38,4 @@ Opdateringsfeedet har samme form som i 0.8.0 beta 1: én post med opdaterings-ZI
 - Workflowet Lokal motor henter de fastlåste filer på en virtuel Apple Silicon-maskine og på Linux, kontrollerer kontrolsummerne, starter motoren med en rigtig lille model og afprøver værktøjskald.
 - Ikke afprøvet: en fysisk Mac med en katalogmodel, hentning af en fil på flere GB over en rigtig forbindelse, hentning bag en proxy, Ollama med en rigtig model og hver katalogmodels evne til at bygge.
 
-Udgivelsen bygges, afprøves og uploades fra udgiverens egen Mac med `desktop/scripts/release-local.cjs`. Tallene fra byggemaskinen, kildecommit og kontrolsummer står under Bygning og kontrol.
+Udgivelsen bygges, afprøves og uploades af workflowet **Byg og udgiv Mac-beta** på en macOS-maskine i GitHub Actions med `desktop/scripts/release-local.cjs`. Den samlede kontrol af kildekoden indgår ikke i den bygning; workflowet Kildetjek kører skrivebordstestene på macOS for hver commit på `main`. Den pakkede app er afprøvet automatisk, men ingen har set den efter før offentliggørelsen. Kildecommit, accepttrin og kontrolsummer står under Bygning og kontrol.

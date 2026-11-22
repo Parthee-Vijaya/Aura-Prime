@@ -92,6 +92,20 @@ test('the build plan tests the source before packaging and the finished package 
   assert.throws(() => local.buildPlan({ version: next, candidate: '/tmp/candidate' }), /forrige/);
 });
 
+test('with --skip-check the plan leaves the source check out and keeps every test of the package', () => {
+  const ids = options => local.buildPlan({ version: next, from: '/tmp/previous.dmg', candidate: '/tmp/candidate', ...options }).map(step => step.id);
+  assert.deepEqual(ids({ skipCheck: true }), ids({}).filter(id => id !== 'check'));
+  assert.deepEqual(ids({ skipCheck: true }).slice(-3), ['package-source', 'package-acceptance', 'mac-artifacts']);
+});
+
+test('build takes --from and --skip-check in any order and refuses anything else', () => {
+  assert.deepEqual(local.buildOptions([]), {});
+  assert.deepEqual(local.buildOptions(['--skip-check']), { skipCheck: true });
+  assert.deepEqual(local.buildOptions(['--skip-check', '--from', '/tmp/previous.dmg']), { skipCheck: true, from: '/tmp/previous.dmg' });
+  assert.deepEqual(local.buildOptions(['--from', '/tmp/previous.dmg']), { from: '/tmp/previous.dmg' });
+  for (const wrong of [['--from'], ['--skip-tests'], ['--skip-check', '--skip-check'], ['--from', 'a', '--from', 'b'], ['extra']]) assert.equal(local.buildOptions(wrong), null, wrong.join(' '));
+});
+
 test('the totals of the full check are read from the end of its output', () => {
   const output = 'ok 2573 - last test\n1..2573\n# tests 2823\n# suites 0\n# pass 2748\n# fail 0\n# cancelled 0\n# skipped 75\n# todo 0\n# duration_ms 104856.5\n';
   assert.deepEqual(local.testCounts(output), { pass: 2748, skip: 75, fail: 0 });
@@ -127,6 +141,18 @@ test('the release text carries the source commit, the machine results and the ch
   assert.match(body, new RegExp('- `Aura-Prime-0\\.8\\.0-beta\\.1-mac-arm64\\.dmg`: SHA-256 `' + 'b'.repeat(64) + '`'));
   assert.match(body, new RegExp('- `beta-mac\\.yml`: SHA-256 `' + 'c'.repeat(64) + '`'));
   assert.doesNotMatch(local.releaseBody('Noter.', { commit: 'a'.repeat(40), fullChecks: null, acceptance: null, files: [] }), /undefined|null|NaN/);
+});
+
+test('the release text names the machine that built it and says when the source check was left out', () => {
+  const base = { commit: 'a'.repeat(40), acceptance: { passedSteps: 22, from: '0.8.0-beta.1' }, files: [{ name: 'beta-mac.yml', sha256: 'c'.repeat(64) }] };
+  const ownMac = local.releaseBody('Noter.', { ...base, fullChecks: { pass: 10, skip: 2, fail: 0 } });
+  assert.match(ownMac, /på udgiverens egen Mac, uden CI/);
+  assert.doesNotMatch(ownMac, /GitHub Actions|indgik ikke/);
+  const hosted = local.releaseBody('Noter.', { ...base, fullChecks: null, ci: true, checkSkipped: true });
+  assert.match(hosted, /på en macOS-maskine i GitHub Actions/);
+  assert.doesNotMatch(hosted, /udgiverens egen Mac|uden CI|Samlet lokal kontrol/);
+  assert.match(hosted, /Den samlede kontrol af kildekoden indgik ikke i bygningen/);
+  assert.match(hosted, /22 accepttrin, opgradering fra 0\.8\.0-beta\.1/);
 });
 
 test('uploaded files must match the tested files byte for byte before the release goes public', () => {
@@ -242,6 +268,27 @@ test('build collects exactly the tested files, a one-entry feed and a qualificat
   assert.ok(!calls.some(call => /^gh |^git (push|tag)/.test(call)), 'no upload, tag or push: ' + calls.filter(call => /^gh /.test(call)).join('; '));
 });
 
+test('a build without the source check records that, claims no test totals, and the published text says so', async () => {
+  const { system, calls } = await machine();
+  system.ci = true;
+  const candidate = await local.build({ from: '/tmp/previous.dmg', skipCheck: true }, system);
+  const qualification = JSON.parse(await fs.readFile(path.join(candidate, 'qualification.json'), 'utf8'));
+  assert.deepEqual([qualification.ci, qualification.checkSkipped, qualification.fullChecks], [true, true, null]);
+  assert.deepEqual(qualification.steps.map(step => step.id), ['install', 'runtime', 'package', 'package-source', 'package-acceptance', 'mac-artifacts']);
+  assert.ok(!calls.some(call => call.includes('check.cjs')), 'the source check did not run');
+  await local.publish(candidate, system);
+  const body = await fs.readFile(path.join(candidate, 'release-body.md'), 'utf8');
+  assert.match(body, /GitHub Actions/);
+  assert.match(body, /indgik ikke i bygningen/);
+  assert.doesNotMatch(body, /udgiverens egen Mac|Samlet lokal kontrol/);
+});
+
+test('a build on the publisher\'s own Mac records that the source check ran', async () => {
+  const { system } = await machine();
+  const qualification = JSON.parse(await fs.readFile(path.join(await local.build({ from: '/tmp/previous.dmg' }, system), 'qualification.json'), 'utf8'));
+  assert.deepEqual([qualification.ci, qualification.checkSkipped], [false, false]);
+});
+
 test('build stops without a qualification record when the collected file is not the verified one', async () => {
   const { system, desktop } = await machine({ artifactDigest: () => 'd'.repeat(64) });
   await assert.rejects(local.build({ from: '/tmp/previous.dmg' }, system), /ikke de filer, pakkekontrollen afprøvede/);
@@ -343,6 +390,17 @@ test('publish refuses changed files, a published tag and a tag without a draft b
   await assert.rejects(local.publish(third, tagged.system), /uden en kladde/);
   for (const m of [changed, published, tagged]) assert.ok(!m.calls.some(call => call.startsWith('gh release create')) && m.github.patched === false);
   await assert.rejects(local.publish(path.join(os.tmpdir(), 'no-such-candidate'), tagged.system), /ENOENT|kandidat/i);
+});
+
+test('the release workflow starts only by hand and only from main, and runs the same two commands as a local release', async () => {
+  const workflow = await fs.readFile(path.join(__dirname, '../../.github/workflows/desktop-release-mac.yml'), 'utf8');
+  assert.match(workflow, /^on:\n  workflow_dispatch:/m);
+  assert.doesNotMatch(workflow, /^\s*(push|pull_request|pull_request_target|schedule|release):/m, 'no trigger but a person');
+  assert.match(workflow, /if: github\.ref == 'refs\/heads\/main'/);
+  assert.equal((workflow.match(/contents: write/g) || []).length, 1, 'only the release job may write');
+  const build = workflow.indexOf('node scripts/release-local.cjs build'), publish = workflow.indexOf('node scripts/release-local.cjs publish');
+  assert.ok(build !== -1 && publish > build, 'publish runs after build');
+  assert.match(workflow, /inputs\.skip_check && '--skip-check' \|\| ''/);
 });
 
 test('on any other machine than an Apple-chip Mac the command stops before it runs anything', { skip: process.platform === 'darwin' && process.arch === 'arm64' }, () => {
