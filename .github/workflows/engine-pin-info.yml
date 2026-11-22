@@ -1,0 +1,35 @@
+name: Motor-oplysninger (midlertidig)
+on:
+  push:
+    branches: ['tools/engine-pin']
+permissions:
+  contents: read
+jobs:
+  info:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Find udgivelser
+        run: |
+          gh api "repos/ggml-org/llama.cpp/releases?per_page=12" --jq '.[] | {tag: .tag_name, published: .published_at, assets: [.assets[] | select(.name | test("bin-macos-arm64\\.tar\\.gz$|bin-ubuntu-x64\\.tar\\.gz$|bin-win-cpu-x64\\.zip$")) | {name, size, digest}]}'
+      - name: Hent og undersøg
+        run: |
+          set -euo pipefail
+          case "$RUNNER_OS" in macOS) pat='bin-macos-arm64.tar.gz';; Linux) pat='bin-ubuntu-x64.tar.gz';; esac
+          url=$(gh api "repos/ggml-org/llama.cpp/releases?per_page=12" --jq "[.[] | .assets[] | select(.name | endswith(\"$pat\"))][0].browser_download_url")
+          echo "URL=$url"
+          curl -fsSL -o engine.tar.gz "$url"; shasum -a 256 engine.tar.gz; ls -l engine.tar.gz
+          tar -tzf engine.tar.gz | head -90
+          mkdir e && tar -xzf engine.tar.gz -C e
+          bin=$(find e -name llama-server -type f | head -1); echo "BIN=$bin"; "$bin" --version
+          if [ "$RUNNER_OS" = macOS ]; then otool -L "$bin"; codesign -dv "$bin" 2>&1 | head -6 || true; fi
+          curl -fsSL -o m.gguf https://huggingface.co/ggml-org/models/resolve/main/tinyllamas/stories260K.gguf
+          "$bin" -m m.gguf --host 127.0.0.1 --port 18999 --ctx-size 2048 --parallel 1 --no-webui --offline > server.log 2>&1 &
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:18999/health && break || sleep 1; done
+          echo; curl -fsS http://127.0.0.1:18999/v1/models | head -c 500; echo; tail -5 server.log
+          sysctl -n machdep.cpu.brand_string 2>/dev/null || true; sysctl -n hw.memsize 2>/dev/null || true
