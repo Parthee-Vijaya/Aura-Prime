@@ -30,6 +30,16 @@ node scripts/release-local.cjs publish "release/candidate-VERSION-TIDSPUNKT"
 
 Når tagget oprettes, starter workflowet **Byg testpakker** stadig. Det offentliggør intet, og den lokale udgivelse afhænger ikke af det. Efter udgivelsen opdateres README, teststatus og eventuelle skærmbilleder i en særskilt commit.
 
+### Samme forløb på en GitHub-maskine
+
+Workflowet **Byg og udgiv Mac-beta** (`.github/workflows/desktop-release-mac.yml`) kører de samme to kommandoer på en `macos-15`-maskine og offentliggør betaen uden et stop imellem. Det startes kun manuelt og kun fra `main`: Actions › Byg og udgiv Mac-beta › Run workflow.
+
+- Sæt **skip_check** for at udelade den samlede kontrol af kildekoden (`build --skip-check`). Pakken sammenlignes stadig med kildekoden, startes, opgraderes fra forrige udgivelse og sammenlignes med DMG og ZIP. Brug det kun, når **Kildetjek** er grønt for samme commit.
+- Kvalifikationen og udgivelsesteksten angiver, at bygningen skete i GitHub Actions, og om kontrollen blev udeladt.
+- Ingen ser appen efter før offentliggørelsen i dette forløb. Vil du se den først, så byg lokalt.
+- Kvalifikationsfilerne gemmes som workflowets artefakt `mac-beta-kvalifikation`.
+- Tagget oprettes med workflowets eget token, så **Byg testpakker** starter ikke af det.
+
 ## Klargør den konkrete version
 
 1. Opdatér `desktop/package.json` og rodpakken i `desktop/package-lock.json` til samme version. Gennemgå ændringerne og de relevante tests. Brugeren håndterer commit, push og tag.

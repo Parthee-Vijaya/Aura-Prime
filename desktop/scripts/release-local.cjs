@@ -1,10 +1,14 @@
-// Local macOS release without CI. Run from desktop/ on the Mac that publishes:
-//   node scripts/release-local.cjs build [--from <previous .app or .dmg>]
+// macOS beta release. Run from desktop/ on the Mac that publishes, or by the workflow
+// "Byg og udgiv Mac-beta" on a GitHub macOS machine:
+//   node scripts/release-local.cjs build [--from <previous .app or .dmg>] [--skip-check]
 //   node scripts/release-local.cjs publish <candidate folder>
 // build installs, tests, packages and qualifies one beta, and collects the files in a new
 // candidate folder. It never uploads, tags or pushes. publish is a separate decision: it
 // uploads the candidate as a draft, compares GitHub's bytes with the tested files and only
 // then makes the prerelease public. Nothing local is deleted and no tag is ever moved.
+// --skip-check leaves out the full source check and nothing else: the packaged app is still
+// compared with the source, started, upgraded from the previous release and compared with
+// the DMG and ZIP. The qualification record and the release text say that it was left out.
 'use strict';
 const fs = require('node:fs/promises');
 const { createReadStream } = require('node:fs');
@@ -60,7 +64,7 @@ function problems({ platform, arch, node, version, dirty, tagExists, notesExist,
 }
 
 // Paths are relative to desktop/, where every step runs.
-function buildPlan({ version, from, candidate }) {
+function buildPlan({ version, from, candidate, skipCheck = false }) {
   const n = names(version);
   if (!from) throw Error('Angiv den forrige udgivelse til opgraderingsprøven.');
   const app = path.join('release', 'mac-arm64', `${distribution.displayName}.app`);
@@ -74,7 +78,7 @@ function buildPlan({ version, from, candidate }) {
     // for a placeholder the interface no longer shows there and failed identically in CI on the v0.6.0-beta.7 tag.
     { id: 'package-acceptance', title: 'Afprøver den pakkede app i en separat profil: accepttrin og opgradering fra forrige udgivelse', command: 'npm', args: ['run', 'test:package-acceptance', '--', '--app', app, '--from', from, '--out', path.join(candidate, 'acceptance.json')] },
     { id: 'mac-artifacts', title: 'Kontrollerer DMG og ZIP mod den afprøvede app', command: 'node', args: ['scripts/verify-mac-artifacts.cjs', app, path.join('release', n.dmg), path.join('release', n.zip), TARGET, path.join(candidate, 'mac-artifacts.json'), '--local-ad-hoc'] }
-  ];
+  ].filter(step => !(skipCheck && step.id === 'check'));
 }
 
 function testCounts(output) {
@@ -96,9 +100,10 @@ function previousRelease(releases, version) {
   return { tag, name, sha256 };
 }
 
-function releaseBody(notes, { commit, fullChecks, acceptance, files }) {
-  const lines = [`Bygget fra \`${commit}\` til macOS på Apple Silicon på udgiverens egen Mac, uden CI. ${SIGNING}.`, ''];
-  if (fullChecks) lines.push(`- Samlet lokal kontrol: ${fullChecks.pass} bestået, ${fullChecks.skip} sprunget over, ${fullChecks.fail} fejl.`);
+function releaseBody(notes, { commit, fullChecks, acceptance, files, ci = false, checkSkipped = false }) {
+  const lines = [`Bygget fra \`${commit}\` til macOS på Apple Silicon ${ci ? 'på en macOS-maskine i GitHub Actions' : 'på udgiverens egen Mac, uden CI'}. ${SIGNING}.`, ''];
+  if (checkSkipped) lines.push('- Den samlede kontrol af kildekoden indgik ikke i bygningen. Pakken er sammenlignet med kildekoden og afprøvet som beskrevet herunder.');
+  else if (fullChecks) lines.push(`- Samlet lokal kontrol: ${fullChecks.pass} bestået, ${fullChecks.skip} sprunget over, ${fullChecks.fail} fejl.`);
   if (acceptance) lines.push(`- Den færdige pakke: ${acceptance.passedSteps} accepttrin, opgradering fra ${acceptance.from}. Det er profilmigration med en lokal testmodel, ikke automatisk download og installation.`);
   lines.push('- DMG og ZIP er kontrolleret mod den afprøvede app. Kontrollen er lokal og ad hoc; den kvalificerer ikke notariseret distribution.');
   return `${notes.trimEnd()}\n\n## Bygning og kontrol\n\n${lines.join('\n')}\n\n## Kontrolsummer\n\n${files.map(file => `- \`${file.name}\`: SHA-256 \`${file.sha256}\``).join('\n')}\n`;
@@ -136,7 +141,7 @@ function run({ command, args, env = {}, capture = false }) {
 }
 // Everything build and publish read from or start on the machine. The tests replace it.
 const system = {
-  desktop, platform: process.platform, arch: process.arch, node: process.versions.node, version: require('../package.json').version, now: () => new Date(), run, pause: 2000,
+  desktop, platform: process.platform, arch: process.arch, node: process.versions.node, version: require('../package.json').version, ci: process.env.GITHUB_ACTIONS === 'true', now: () => new Date(), run, pause: 2000,
   say: text => { process.stdout.write(text + '\n'); },
   git: (...args) => execFileSync('git', args, { cwd: repositoryRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim(),
   gitSucceeds: (...args) => spawnSync('git', args, { cwd: repositoryRoot, stdio: 'ignore' }).status === 0,
@@ -173,7 +178,7 @@ async function previousPackage(version, from, sys) {
   return { path: file, tag: previous.tag, sha256: previous.sha256 };
 }
 
-async function build({ from } = {}, sys = system) {
+async function build({ from, skipCheck = false } = {}, sys = system) {
   const local = localFacts(sys);
   refuse(problems({ ...local, onMain: true }));
   sys.git('fetch', '--quiet', 'origin', 'main');
@@ -185,7 +190,7 @@ async function build({ from } = {}, sys = system) {
   await fs.mkdir(path.dirname(candidate), { recursive: true });
   await fs.mkdir(candidate); // A candidate folder is never reused or overwritten.
   const steps = []; let fullChecks = null;
-  for (const step of buildPlan({ version, from: previous.path, candidate })) {
+  for (const step of buildPlan({ version, from: previous.path, candidate, skipCheck })) {
     sys.say(`\n== ${step.title}`);
     const started = Date.now(), output = await sys.run(step);
     if (step.id === 'check') fullChecks = testCounts(output);
@@ -204,7 +209,7 @@ async function build({ from } = {}, sys = system) {
   const write = async (name, text) => { await fs.writeFile(path.join(candidate, name), text, { flag: 'wx' }); return { name, ...await digest(path.join(candidate, name)) }; };
   files.push(await write(n.feed, JSON.stringify(feed({ version, sha512: files[1].sha512, size: files[1].bytes, releaseDate: sys.now().toISOString() }), null, 2) + '\n'));
   files.push(await write(n.sums, checksums(files)));
-  const qualification = { format: 1, version, tag: n.tag, sourceCommit: commit, builtAt: sys.now().toISOString(), ci: false,
+  const qualification = { format: 1, version, tag: n.tag, sourceCommit: commit, builtAt: sys.now().toISOString(), ci: Boolean(sys.ci), checkSkipped: Boolean(skipCheck),
     host: { platform: sys.platform, arch: sys.arch, node: sys.node }, signing: SIGNING,
     previous: { tag: previous.tag || null, file: path.basename(previous.path), sha256: previous.sha256 || null },
     fullChecks, acceptance: { passedSteps: acceptance.steps.filter(step => step.status === 'pass').length, from: acceptance.from?.version || null }, steps,
@@ -237,7 +242,7 @@ async function publish(folder, sys = system) {
   if (!release && remoteTagExists(n.tag, sys)) throw Error(`Tagget ${n.tag} findes allerede uden en kladde. Et tag flyttes eller genbruges ikke.`);
   if (!release) {
     const body = path.join(candidate, 'release-body.md');
-    await fs.writeFile(body, releaseBody(sys.git('show', `${commit}:${n.notes}`), { commit, fullChecks: qualification.fullChecks, acceptance: qualification.acceptance?.from ? qualification.acceptance : null, files: files.slice(0, 3) }));
+    await fs.writeFile(body, releaseBody(sys.git('show', `${commit}:${n.notes}`), { commit, fullChecks: qualification.fullChecks, acceptance: qualification.acceptance?.from ? qualification.acceptance : null, files: files.slice(0, 3), ci: qualification.ci === true, checkSkipped: qualification.checkSkipped === true }));
     sys.say(`\n== Uploader ${files.length} filer til en kladde for ${n.tag}`);
     await sys.run({ command: 'gh', args: ['release', 'create', n.tag, '--repo', repository, '--target', commit, '--draft', '--prerelease', '--title', n.title, '--notes-file', body, ...files.map(file => path.join(candidate, file.name))] });
     release = find();
@@ -265,13 +270,24 @@ async function publish(folder, sys = system) {
   return published.html_url;
 }
 
-const USAGE = ['Brug, fra desktop/ på den Mac der udgiver:', '  node scripts/release-local.cjs build [--from <forrige .app eller .dmg>]', '  node scripts/release-local.cjs publish <kandidatmappe>',
-  'build uploader, tagger og pusher intet. publish uploader en kladde, sammenligner GitHubs filer med de afprøvede og offentliggør først derefter.'].join('\n');
+const USAGE = ['Brug, fra desktop/ på den Mac der udgiver:', '  node scripts/release-local.cjs build [--from <forrige .app eller .dmg>] [--skip-check]', '  node scripts/release-local.cjs publish <kandidatmappe>',
+  'build uploader, tagger og pusher intet. --skip-check udelader den samlede kontrol af kildekoden; pakken afprøves stadig.',
+  'publish uploader en kladde, sammenligner GitHubs filer med de afprøvede og offentliggør først derefter.'].join('\n');
+// build takes each option at most once, in any order. Anything else is refused rather than ignored.
+function buildOptions(rest) {
+  const found = {};
+  for (let index = 0; index < rest.length; index++) {
+    if (rest[index] === '--skip-check' && !found.skipCheck) found.skipCheck = true;
+    else if (rest[index] === '--from' && rest[index + 1] && !found.from) found.from = rest[++index];
+    else return null;
+  }
+  return found;
+}
 async function main([command, ...rest]) {
-  if (command === 'build' && (rest.length === 0 || rest.length === 2 && rest[0] === '--from')) return build({ from: rest[1] });
+  if (command === 'build' && buildOptions(rest)) return build(buildOptions(rest));
   if (command === 'publish' && rest.length === 1) return publish(rest[0]);
   throw Error(USAGE);
 }
 if (require.main === module) main(process.argv.slice(2)).catch(error => { console.error(error.message); process.exitCode = 1; });
 
-module.exports = { names, feed, checksums, problems, buildPlan, testCounts, previousRelease, releaseBody, verifyUploaded, build, publish, system };
+module.exports = { names, feed, checksums, problems, buildPlan, buildOptions, testCounts, previousRelease, releaseBody, verifyUploaded, build, publish, system };
