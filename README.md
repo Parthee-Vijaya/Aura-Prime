@@ -2,11 +2,11 @@
 
 Aura Prime hjælper dig fra idé til plan, kode og forhåndsvisning i et lokalt arbejdsområde. Appen bygger videre på [Aura Harness fra AI Alliancen](https://github.com/ai-alliancen-org/ai-harness) med OpenCode som kodeagent og frit valg af AI-forbindelse.
 
-**Aktuel udgivelse: Aura Prime 0.8.0 beta 1, 12. november 2026.** Den indeholder materialesystemet, @-henvisninger, dokumentvisning og automatisering oven på beta 7; se [ændringsloggen](CHANGELOG.md). Versionen er en udviklingsbeta til macOS på Apple Silicon: [Hent **Aura Prime 0.8.0 beta 1**](https://github.com/Parthee-Vijaya/Aura-Prime/releases/tag/v0.8.0-beta.1) (ad hoc-signeret, ikke notariseret). [Noter og kontrolsummer](docs/releases/aura-prime-0.8.0-beta.1.md). Billederne nedenfor er fra beta 7 på macOS med isolerede testprofiler og det opdigtede projekt *Fjordby arrangementer*; der er endnu ikke taget macOS-billeder af det nye udseende.
+**Aktuel udgivelse: Aura Prime 0.9.0 beta 1, 22. november 2026.** Den tilføjer lokale modeller oven på 0.8.0 beta 1; se [ændringsloggen](CHANGELOG.md). Versionen er en udviklingsbeta til macOS på Apple Silicon: [Hent **Aura Prime 0.9.0 beta 1**](https://github.com/Parthee-Vijaya/Aura-Prime/releases/tag/v0.9.0-beta.1) (ad hoc-signeret, ikke notariseret). [Noter og kontrolsummer](docs/releases/aura-prime-0.9.0-beta.1.md). Billederne nedenfor er fra beta 7 på macOS med isolerede testprofiler og det opdigtede projekt *Fjordby arrangementer*; der er endnu ikke taget macOS-billeder af det nye udseende.
 
 ![Aura Prime med integreret logo, projektoversigt og centreret samtalestart](docs/images/aura-prime-0.6.0-beta.7/06-workspace-light.png)
 
-**Opgradering fra beta 5 eller den første beta 6:** Installer DMG'en manuelt. De versioner kan ikke hente en opdatering selv; det blev rettet i beta 7. Beta 7 finder 0.8.0 beta 1 ved næste opdateringskontrol, men download og installation derfra er ikke afprøvet, så DMG'en er den sikre vej. Dine lokale projekter og indstillinger bevares.
+**Opgradering fra beta 5 eller den første beta 6:** Installer DMG'en manuelt. De versioner kan ikke hente en opdatering selv; det blev rettet i beta 7. Beta 7 og 0.8.0 beta 1 finder 0.9.0 beta 1 ved næste opdateringskontrol, men download og installation derfra er ikke afprøvet, så DMG'en er den sikre vej. Dine lokale projekter og indstillinger bevares.
 
 ## Det nye arbejdsområde
 
@@ -17,7 +17,7 @@ Det fulde redesign giver en roligere arbejdsapp med et nyt opstartsforløb. Aura
 - **Et integreret logo.** Aura-identiteten indgår i velkomst, sidebar og den centrerede samtalestart.
 - **En sidebar, der kan skjules helt.** Åbn den igen fra arbejdsområdets top. Projekter, samtaler, søgning og indstillinger er samlet til venstre.
 - **Flere AI-udbydere og plugins.** Under AI-forbindelser ligger de kendte udbydere som kort, og nye som Google Gemini, Groq, xAI og LM Studio i en dropdown. Under Plugins styrer du webhentning og kontekstvisning. Plugins, der endnu ikke kan dækkes sikkert, står med en begrundelse.
-- **Lokale modeller (fra 0.9.0 beta 1).** Under Indstillinger kan du se, hvilke åbne AI-modeller der kan køre på din egen computer, hente dem med kontrolsum og afprøve deres værktøjskald. Modellen kører i Auras indbyggede motor eller i Ollama. [Sådan virker det](docs/lokale-modeller.md).
+- **Lokale modeller.** Under Indstillinger kan du se, hvilke åbne AI-modeller der kan køre på din egen computer, hente dem med kontrolsum og afprøve deres værktøjskald. Modellen kører i Auras indbyggede motor eller i Ollama. [Sådan virker det](docs/lokale-modeller.md).
 - **Samlede indstillinger.** Lokal profil, generelle valg, AI-forbindelser, funktioner, opdateringer og hjælp har samme navigation. Vælg lyst, mørkt eller systemets tema, og justér tekststørrelsen.
 - **Ét materialesystem.** Seks radiustrin, hårstreger på 0,5 px, bløde elevationer uden kant og fokusringe, der følger tastaturet. Accenten er Auras egen grønne. Se [designkontrakten](desktop/DESIGN.md).
 - **Adgang til arbejdsdetaljer.** Samtalen og arbejdssporet supplerer forhåndsvisning, plan, ændringer, kode og aktivitet. Det midlertidigt lukkede panel i en ny samtale overskriver ikke dit gemte layoutvalg.
